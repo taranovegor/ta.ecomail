@@ -1,0 +1,17 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "no_trailing_whitespace": true,
+        "single_quote": true,
+        "trailing_comma_in_multiline": false,
+        "concat_space": true
+    },
+    "exclude": [
+        "database/migrations",
+        "database/seeders",
+        "vendor",
+        "storage",
+        "bootstrap/cache"
+    ]
+}
+
