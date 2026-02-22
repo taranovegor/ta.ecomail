@@ -62,6 +62,38 @@ services:
       timeout: 5s
       retries: 3
 
+  rabbitmq:
+    image: rabbitmq:4.2-alpine
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq-data-production:/var/lib/rabbitmq
+    networks:
+      - laravel-production
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: unless-stopped
+    environment:
+      - MEILI_ENV=production
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-masterkey}
+    volumes:
+      - meilisearch-data-production:/meili_data
+    networks:
+      - laravel-production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 networks:
   laravel-production:
 
@@ -69,3 +101,5 @@ volumes:
   mariadb-data-production:
   laravel-storage-production:
   laravel-public-assets:
+  meilisearch-data-production:
+  rabbitmq-data-production:
