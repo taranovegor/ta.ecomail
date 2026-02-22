@@ -70,3 +70,6 @@ format: ## Format code with Pint and PHPCS
 lint: ## Run all checks (PHPStan, Pint, PHPCS)
 	$(COMPOSE) exec workspace ./vendor/bin/phpstan analyse && \
 	$(COMPOSE) exec workspace ./vendor/bin/pint --test
+
+test: ## Run tests
+	$(COMPOSE) exec workspace composer test
