@@ -28,8 +28,8 @@ services:
         XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
         XDEBUG_LOG: /dev/stdout
         XDEBUG_LOG_LEVEL: 0
-#    env_file:
-#      - .env
+    env_file:
+      - .env
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
@@ -37,6 +37,12 @@ services:
       - laravel-development
     depends_on:
       mariadb:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      meilisearch:
         condition: service_started
 
   workspace:
@@ -56,8 +62,8 @@ services:
       - '${VITE_PORT:-5173}:5173'
     tty: true
     stdin_open: true
-#    env_file:
-#      - .env
+    env_file:
+      - .env
     volumes:
       - ./:/var/www
     networks:
@@ -94,6 +100,12 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
     networks:
       - laravel-development
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s # Даем время на инициализацию перед первой проверкой
 
   meilisearch:
     image: getmeili/meilisearch:latest
@@ -106,6 +118,125 @@ services:
       - meilisearch-data-development:/meili_data
     networks:
       - laravel-development
+
+  queue-import-orchestrator:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    env_file:
+      - .env
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["php", "artisan", "queue:work", "--queue=import-orchestrator"]
+    restart: unless-stopped
+
+  queue-import-chunks:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    env_file:
+      - .env
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["php", "artisan", "queue:work", "--queue=import-chunks"]
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  queue-import-finalize:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    env_file:
+      - .env
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["php", "artisan", "queue:work", "--queue=import-finalize"]
+    restart: unless-stopped
+
+  queue-scout:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    env_file:
+      - .env
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["php", "artisan", "queue:work", "--queue=scout"]
+    restart: unless-stopped
 
 networks:
   laravel-development:

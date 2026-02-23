@@ -19,7 +19,6 @@ test('show page displays contact details', function () {
     get(route('contacts.show', $contact))
         ->assertOk()
         ->assertViewIs('contacts.show')
-        ->assertViewHas('contact', $contact)
         ->assertSeeText('henri@example.com')
         ->assertSeeText('Henri')
         ->assertSeeText('Schinner');

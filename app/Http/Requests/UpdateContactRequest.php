@@ -14,7 +14,7 @@ class UpdateContactRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'email:rfc,strict',
+                'email:rfc',
                 Rule::unique('contacts', 'email')->ignore($this->route('contact')),
             ],
             'first_name' => ['required', 'string', 'max:255'],

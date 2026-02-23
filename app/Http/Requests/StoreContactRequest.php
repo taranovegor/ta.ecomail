@@ -13,7 +13,7 @@ class StoreContactRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'email:rfc,strict',
+                'email:rfc',
                 'unique:contacts,email',
             ],
             'first_name' => ['required', 'string', 'max:255'],

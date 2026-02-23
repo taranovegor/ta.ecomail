@@ -8,14 +8,40 @@
 
 ## Quick Start
 
-Clone the repository and build the project:
+Clone the repository, install and initialize the full environment (build, start, dependencies, migrations):
 
 ```bash
 git clone git@github.com:taranovegor/ta.ecomail.git
 cd ecomail
-cp .env.example .env
-make build
-make up
+make install
+```
+
+### Import visuals
+
+**Import processing scheme**  
+![Import processing scheme](docs/import-scheme.png)
+
+**100k run resource usage**  
+![import-orchestrator-1.png](docs/import-orchestrator-1.png)
+![100k run resource usage](docs/queue-import-chunks-1.png)
+
+**Import results**  
+![Import results](docs/import-results.png)
+`\App\Services\Import\ChunkProcessor::validate`
+```php
+        // Laravel Validator is too slow for this case.
+        // Tests showed that replacing Validator::make with simple native PHP checks
+        // makes the process about 3 times faster and uses 15% less memory.
+        //
+        // We use filter_var and strlen for basic validation,
+        // BUT, the email check is not exactly the same as Laravel 'email:rfc' rule.
+        //
+        // This is a topic for discussion: what is matters more to us.
+        $validator = Validator::make($record, [
+            'email' => ['required', 'string', 'max:255', 'email:rfc'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+        ]);
 ```
 
 ## Container Management
@@ -138,4 +164,58 @@ View the complete list of available commands:
 
 ```bash
 make help
+```
+
+## Дополнительные команды
+
+Сборка образов (без запуска контейнеров):
+
+```bash
+make build
+```
+
+Открыть bash внутри контейнера workspace:
+
+```bash
+make bash
+```
+
+### Проверки и форматирование
+
+Статический анализ PHPStan:
+
+```bash
+make phpstan
+```
+
+Форматирование кода (Pint):
+
+```bash
+make pint
+```
+
+Проверка форматирования без изменений:
+
+```bash
+make pint-check
+```
+
+Единая команда форматирования:
+
+```bash
+make format
+```
+
+Все проверки разом:
+
+```bash
+make lint
+```
+
+### Тесты
+
+Запуск тестов:
+
+```bash
+make test
 ```

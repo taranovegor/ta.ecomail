@@ -16,4 +16,5 @@ php artisan route:clear
 php artisan view:clear
 
 # Run the default command (e.g., php-fpm or bash)
+echo "Executing command: $@"
 exec "$@"

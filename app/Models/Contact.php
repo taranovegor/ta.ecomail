@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use DateTimeInterface;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
@@ -12,8 +12,8 @@ use Laravel\Scout\Searchable;
  * @property string $email
  * @property string $first_name
  * @property string $last_name
- * @property DateTimeInterface $created_at
- * @property DateTimeInterface $updated_at
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
  */
 class Contact extends Model
 {

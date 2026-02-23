@@ -6,6 +6,7 @@ use App\Dto\ContactData;
 use App\Http\Requests\IndexContactRequest;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\UpdateContactRequest;
+use App\Http\ViewModels\ContactViewModel;
 use App\Models\Contact;
 use App\Services\ContactService;
 use Illuminate\Contracts\View\View;
@@ -24,7 +25,7 @@ class ContactController extends Controller
         );
 
         return view('contacts.index', [
-            'contacts' => $contacts,
+            'contacts' => $contacts->through(static fn (Contact $contact) => new ContactViewModel($contact)),
             'search' => $request->validated('search'),
         ]);
     }
@@ -41,21 +42,21 @@ class ContactController extends Controller
         );
 
         return redirect()
-            ->route('contacts.show', $contact)
+            ->route('contacts.show', new ContactViewModel($contact))
             ->with('success', 'Contact created successfully.');
     }
 
     public function show(Contact $contact): View
     {
         return view('contacts.show', [
-            'contact' => $contact,
+            'contact' => new ContactViewModel($contact),
         ]);
     }
 
     public function edit(Contact $contact): View
     {
         return view('contacts.edit', [
-            'contact' => $contact,
+            'contact' => new ContactViewModel($contact),
         ]);
     }
 
@@ -67,7 +68,7 @@ class ContactController extends Controller
         );
 
         return redirect()
-            ->route('contacts.show', $contact)
+            ->route('contacts.show', new ContactViewModel($contact))
             ->with('success', 'Contact updated successfully.');
     }
 
