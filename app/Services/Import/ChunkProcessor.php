@@ -38,7 +38,7 @@ class ChunkProcessor
                 $counters['total']++;
 
                 $record = [
-                    'email' => $row[0],
+                    'email' => strtolower($row[0]),
                     'first_name' => $row[1],
                     'last_name' => $row[2],
                 ];

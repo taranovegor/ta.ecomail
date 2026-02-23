@@ -46,7 +46,7 @@ class ShardWriter
 
     private function shardIndex(string $email, int $shardCount): int
     {
-        $index = crc32($email) % $shardCount;
+        $index = crc32(strtolower($email)) % $shardCount;
 
         return $index < 0 ? $index + $shardCount : $index;
     }
