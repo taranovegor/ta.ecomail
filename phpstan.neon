@@ -10,3 +10,7 @@ parameters:
         - database/migrations
         - database/seeders
         - tests
+
+    ignoreErrors:
+        # Method is documented in phpdoc; phpstan cannot read it.
+        - '#Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator::through\(\)\.#'

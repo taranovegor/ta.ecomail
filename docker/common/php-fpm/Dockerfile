@@ -97,6 +97,13 @@ ARG PHP_MEMORY_LIMIT=512M
 ENV PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT}
 RUN echo "memory_limit=${PHP_MEMORY_LIMIT}" > /usr/local/etc/php/conf.d/memory-limit.ini
 
+ARG PHP_POST_MAX_SIZE=1024M
+ENV PHP_POST_MAX_SIZE=${PHP_POST_MAX_SIZE}
+ARG PHP_UPLOAD_MAX_FILESIZE=1024M
+ENV PHP_UPLOAD_MAX_FILESIZE=${PHP_UPLOAD_MAX_FILESIZE}
+RUN echo "post_max_size=${PHP_POST_MAX_SIZE}" > /usr/local/etc/php/conf.d/upload-limits.ini && \
+    echo "upload_max_filesize=${PHP_UPLOAD_MAX_FILESIZE}" >> /usr/local/etc/php/conf.d/upload-limits.ini
+
 # Copy the application code and dependencies from the build stage
 COPY --from=builder /var/www /var/www
 

@@ -3,7 +3,7 @@
     <input type="text"
            id="email"
            name="email"
-           value="{{ old('email', $contact->email ?? '') }}"
+           value="{{ old('email', $contact?->email() ?? '') }}"
            class="w-full px-3 py-2 border
                   @error('email') border-red-500 @else border-gray-300 @enderror
                   focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
@@ -19,7 +19,7 @@
     <input type="text"
            id="first_name"
            name="first_name"
-           value="{{ old('first_name', $contact->first_name ?? '') }}"
+           value="{{ old('first_name', $contact?->firstName() ?? '') }}"
            class="w-full px-3 py-2 border
                   @error('first_name') border-red-500 @else border-gray-300 @enderror
                   focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
@@ -35,7 +35,7 @@
     <input type="text"
            id="last_name"
            name="last_name"
-           value="{{ old('last_name', $contact->last_name ?? '') }}"
+           value="{{ old('last_name', $contact?->lastName() ?? '') }}"
            class="w-full px-3 py-2 border
                   @error('last_name') border-red-500 @else border-gray-300 @enderror
                   focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>

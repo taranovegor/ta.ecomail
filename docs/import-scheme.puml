@@ -1,0 +1,41 @@
+@startuml
+title File Import scheme
+
+actor User
+
+component "API / Upload Controller" as API
+component "SplitImportJob" as Orchestrator
+component "Shard Storage\n(temp small files)" as ShardStorage
+queue "Queue" as Queue
+component "Worker" as Worker
+database "DB" as DB
+component "FinalizeImportJob" as Finalize
+
+User --> API : Upload file
+API --> Orchestrator : Dispatch Import
+
+note right of Orchestrator
+fileSize = disk->size(file_path)
+shardSize = config('import.shard_size', 1024 ^ 2)
+shardCount = ceil(fileSize / shardSize)
+
+shardIndex = crc32(email) % shardCount
+end note
+
+Orchestrator --> ShardStorage : Split file into N shards
+
+Orchestrator --> Queue : Dispatch job for shard
+
+Queue --> Worker : Pull job
+
+Worker --> ShardStorage : Read shard_i
+
+Worker --> DB : Insert unique
+Worker --> DB : Insert duplicates
+
+Worker --> Finalize : If last shard -> Dispatch
+
+Finalize --> DB : Aggregate totals
+Finalize --> DB : Update import statistics
+
+@enduml

@@ -3,8 +3,12 @@
 @section('content')
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl text-gray-800">Contacts</h1>
-        <a href="{{ route('contacts.create') }}"
-           class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700">Add Contact</a>
+        <div class="flex justify-between gap-3">
+            <a href="{{ route('contacts.create') }}"
+               class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700">Add Contact</a>
+            <a href="{{ route('imports.create') }}"
+               class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700">Import Contacts</a>
+        </div>
     </div>
 
     <form action="{{ route('contacts.index') }}" method="GET" class="mb-6">
@@ -48,13 +52,13 @@
                 @foreach ($contacts as $contact)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 text-sm text-gray-900">
-                            {{ $contact->email }}
+                            {{ $contact->email() }}
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-700">
-                            {{ $contact->first_name }}
+                            {{ $contact->firstName() }}
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-700">
-                            {{ $contact->last_name }}
+                            {{ $contact->lastName() }}
                         </td>
                         <td class="px-4 py-3 text-sm text-right">
                             <a href="{{ route('contacts.show', $contact) }}"

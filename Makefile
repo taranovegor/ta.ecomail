@@ -73,3 +73,10 @@ lint: ## Run all checks (PHPStan, Pint, PHPCS)
 
 test: ## Run tests
 	$(COMPOSE) exec workspace composer test
+
+install: ## Full environment setup (build, up, composer setup)
+	[ -f .env ] || cp .env.example .env
+	$(COMPOSE) build
+	$(COMPOSE) up -d
+	$(COMPOSE) exec workspace composer setup
+\
