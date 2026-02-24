@@ -3,11 +3,13 @@ title File Import scheme
 
 actor User
 
-component "API / Upload Controller" as API
+component "ImportController" as API
 component "SplitImportJob" as Orchestrator
 component "Shard Storage\n(temp small files)" as ShardStorage
 queue "Queue" as Queue
-component "Worker" as Worker
+component "Worker 1" as Worker_1
+component "Worker 2" as Worker_2
+component "Worker 3" as Worker_3
 database "DB" as DB
 component "FinalizeImportJob" as Finalize
 
@@ -15,27 +17,34 @@ User --> API : Upload file
 API --> Orchestrator : Dispatch Import
 
 note right of Orchestrator
-fileSize = disk->size(file_path)
-shardSize = config('import.shard_size', 1024 ^ 2)
-shardCount = ceil(fileSize / shardSize)
+  fileSize = disk->size(file_path)
+  shardSize = config('import.shard_size', 1024 ^ 2)
+  shardCount = ceil(fileSize / shardSize)
+  shardIndex = crc32(email) % shardCount
 
-shardIndex = crc32(email) % shardCount
+  **Bus::batch([jobs])**
+  ->onQueue('import-chunks')
+  ->finally(FinalizeImportJob)
 end note
 
-Orchestrator --> ShardStorage : Split file into N shards
+Orchestrator -[#red]-> ShardStorage : Split file into N shards
+Orchestrator --> Queue : Dispatch Batch
 
-Orchestrator --> Queue : Dispatch job for shard
+Queue --> Worker_1 : Job 1
+Queue --> Worker_2 : Job 2
+Queue --> Worker_3 : Job 3
 
-Queue --> Worker : Pull job
+Worker_1 -[#green]-> ShardStorage : Read shard_1
+Worker_2 -[#green]-> ShardStorage : Read shard_2
+Worker_3 -[#green]-> ShardStorage : Read shard_3
 
-Worker --> ShardStorage : Read shard_i
+Worker_1 -[#orange]-> DB : Insert
+Worker_2 -[#orange]-> DB : Insert
+Worker_3 -[#orange]-> DB : Insert
 
-Worker --> DB : Insert unique
-Worker --> DB : Insert duplicates
+Queue -[#blue]-> Finalize : all jobs finished
 
-Worker --> Finalize : If last shard -> Dispatch
-
-Finalize --> DB : Aggregate totals
-Finalize --> DB : Update import statistics
+Finalize -[#orange]-> DB : Aggregate totals
+Finalize -[#orange]-> DB : Update import statistics
 
 @enduml
