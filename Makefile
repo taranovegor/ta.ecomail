@@ -1,8 +1,14 @@
 # Default environment (dev or prod)
 ENV ?= dev
 
-COMPOSE_DEV = docker compose -f compose.dev.yaml
-COMPOSE_PROD = docker compose -f compose.prod.yaml
+ifeq ($(shell command -v docker-compose 2> /dev/null),)
+	DOCKER_COMPOSE_CMD = docker compose
+else
+	DOCKER_COMPOSE_CMD = docker-compose
+endif
+
+COMPOSE_DEV = $(DOCKER_COMPOSE_CMD) -f compose.dev.yaml
+COMPOSE_PROD = $(DOCKER_COMPOSE_CMD) -f compose.prod.yaml
 
 ifeq ($(ENV),prod)
 	COMPOSE = $(COMPOSE_PROD)
