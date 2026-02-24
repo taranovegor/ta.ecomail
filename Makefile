@@ -1,4 +1,4 @@
-# Default environment (dev or prod)
+# Default environment (dev or prod). Prod environment has not been tested.
 ENV ?= dev
 
 ifeq ($(shell command -v docker-compose 2> /dev/null),)
