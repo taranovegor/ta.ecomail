@@ -49,7 +49,8 @@
         "setup": [
             "composer install",
             "@php artisan key:generate",
-            "@php artisan migrate --force"
+            "@php artisan migrate --force",
+            "@php artisan scout:sync-index-settings"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
