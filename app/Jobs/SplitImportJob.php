@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Jobs;
 
-use App\Contracts\ContactImporterInterface;
 use App\Enums\ImportChunkStatus;
 use App\Enums\ImportStatus;
 use App\Models\Import;
@@ -13,8 +10,6 @@ use App\Services\Import\ContactImporterResolver;
 use App\Services\Import\ShardWriter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +17,7 @@ use Throwable;
 
 class SplitImportJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly Import $import,

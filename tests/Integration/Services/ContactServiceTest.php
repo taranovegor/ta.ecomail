@@ -5,10 +5,7 @@ use App\Dto\ContactData;
 use App\Models\Contact;
 use App\Services\ContactService;
 use Database\Factories\ContactFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Contact::disableSearchSyncing();

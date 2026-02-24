@@ -37,12 +37,12 @@ class ContactViewModel implements Stringable
         return trim("{$this->contact->first_name} {$this->contact->last_name}");
     }
 
-    public function createdAt(): CarbonInterface
+    public function createdAt(): ?CarbonInterface
     {
         return $this->contact->created_at;
     }
 
-    public function updatedAt(): CarbonInterface
+    public function updatedAt(): ?CarbonInterface
     {
         return $this->contact->updated_at;
     }

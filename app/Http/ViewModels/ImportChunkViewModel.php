@@ -61,12 +61,12 @@ class ImportChunkViewModel
         return $this->chunk->error_message;
     }
 
-    public function createdAt(): CarbonInterface
+    public function createdAt(): ?CarbonInterface
     {
         return $this->chunk->created_at;
     }
 
-    public function updatedAt(): CarbonInterface
+    public function updatedAt(): ?CarbonInterface
     {
         return $this->chunk->updated_at;
     }

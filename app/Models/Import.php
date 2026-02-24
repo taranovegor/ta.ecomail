@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $original_filename
  * @property string $file_path
  * @property string $mime_type
- * @property int $total_records
+ * @property int|null $total_records
  * @property int $imported_count
  * @property int $duplicates_count
  * @property int $invalid_count
@@ -21,8 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $error_message
  * @property CarbonInterface|null $started_at
  * @property CarbonInterface|null $completed_at
- * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
  * @property ImportChunk[] $chunks
  * @property ImportIssue[] $issues
  */

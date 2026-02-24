@@ -37,7 +37,7 @@ class ImportViewModel implements Stringable
         return $this->import->mime_type;
     }
 
-    public function totalRecords(): int
+    public function totalRecords(): ?int
     {
         return $this->import->total_records;
     }
@@ -77,19 +77,19 @@ class ImportViewModel implements Stringable
         return $this->import->completed_at;
     }
 
-    public function createdAt(): CarbonInterface
+    public function createdAt(): ?CarbonInterface
     {
         return $this->import->created_at;
     }
 
-    public function updatedAt(): CarbonInterface
+    public function updatedAt(): ?CarbonInterface
     {
         return $this->import->updated_at;
     }
 
-    public function progressPercentage(): int
+    public function progressPercentage(): ?int
     {
-        if ($this->import->total_records === 0) {
+        if ($this->import->total_records === 0 || $this->import->total_records === null) {
             return 0;
         }
 

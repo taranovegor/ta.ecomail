@@ -2,11 +2,8 @@
 
 use App\Models\Contact;
 use Database\Factories\ContactFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\put;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Contact::disableSearchSyncing();

@@ -32,12 +32,12 @@ class ImportIssueViewModel implements Stringable
         return $this->issue->email;
     }
 
-    public function firstName(): string
+    public function firstName(): ?string
     {
         return $this->issue->first_name;
     }
 
-    public function lastName(): string
+    public function lastName(): ?string
     {
         return $this->issue->last_name;
     }
@@ -52,7 +52,7 @@ class ImportIssueViewModel implements Stringable
         return $this->issue->reason;
     }
 
-    public function createdAt(): CarbonInterface
+    public function createdAt(): ?CarbonInterface
     {
         return $this->issue->created_at;
     }

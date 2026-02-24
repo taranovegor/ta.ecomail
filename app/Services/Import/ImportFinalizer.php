@@ -42,8 +42,9 @@ class ImportFinalizer
             default => ImportStatus::Failed,
         };
 
+        $now = now();
         $processingTime = $import->started_at
-            ? $import->started_at->diffInMilliseconds(now()) / 1000
+            ? $import->started_at->diffInMilliseconds($now) / 1000
             : null;
 
         $import->update([
@@ -52,12 +53,12 @@ class ImportFinalizer
             'duplicates_count' => (int) $stats->duplicates,
             'invalid_count' => (int) $stats->invalid,
             'processing_time_seconds' => $processingTime,
-            'completed_at' => now(),
+            'completed_at' => $now,
         ]);
 
         // IMHO, it would be better to set up a cron job that would run this command periodically. It shouldn’t be here.
         if ((int) $stats->imported > 0) {
-            Artisan::call('scout:import', ['model' => Contact::class]);
+            Artisan::call('scout:queue-import', ['model' => Contact::class]);
         }
 
         $fs->deleteDirectory("imports/{$import->id}");

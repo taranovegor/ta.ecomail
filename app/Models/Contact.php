@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\EmailNormalizer;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +13,8 @@ use Laravel\Scout\Searchable;
  * @property string $email
  * @property string $first_name
  * @property string $last_name
- * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
  */
 class Contact extends Model
 {
@@ -36,6 +37,6 @@ class Contact extends Model
 
     protected function email(): Attribute
     {
-        return Attribute::make(set: fn (string $value): string => strtolower(trim($value)));
+        return Attribute::make(set: fn (string $value): string => EmailNormalizer::normalize($value));
     }
 }

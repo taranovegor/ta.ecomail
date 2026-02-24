@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $duplicates
  * @property int $invalid
  * @property string|null $error_message
- * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
  * @property Import $import
  */
 class ImportChunk extends Model

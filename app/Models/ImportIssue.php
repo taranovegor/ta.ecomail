@@ -12,10 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $import_id
  * @property IssueType $type
  * @property string $email
- * @property string $first_name
- * @property string $last_name
+ * @property string|null $first_name
+ * @property string|null $last_name
  * @property string $reason
- * @property CarbonInterface $created_at
+ * @property CarbonInterface|null $created_at
  * @property Import $import
  */
 class ImportIssue extends Model

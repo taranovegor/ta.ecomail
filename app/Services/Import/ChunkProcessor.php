@@ -3,7 +3,11 @@
 namespace App\Services\Import;
 
 use App\Enums\IssueType;
+use App\Models\Contact;
 use App\Models\ImportIssue;
+use App\Rules\ContactRules;
+use App\Services\EmailNormalizer;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -11,11 +15,15 @@ use RuntimeException;
 
 class ChunkProcessor
 {
+    protected ?CarbonInterface $startedAt = null;
+
     /**
      * @return array{total: int, imported: int, duplicates: int, invalid: int}
      */
     public function process(Filesystem $fs, string $filePath, int $importId, int $batchSize): array
     {
+        $this->startedAt = now();
+
         $stream = $fs->readStream($filePath);
 
         if ($stream === null) {
@@ -38,7 +46,7 @@ class ChunkProcessor
                 $counters['total']++;
 
                 $record = [
-                    'email' => strtolower($row[0]),
+                    'email' => EmailNormalizer::normalize($row[0]),
                     'first_name' => $row[1],
                     'last_name' => $row[2],
                 ];
@@ -65,7 +73,6 @@ class ChunkProcessor
 
                 if (count($insertBuffer) >= $batchSize) {
                     $counters['imported'] += $this->flushInserts($insertBuffer);
-                    $insertBuffer = [];
                 }
             }
 
@@ -93,11 +100,7 @@ class ChunkProcessor
         // BUT, the email check is not exactly the same as Laravel 'email:rfc' rule.
         //
         // This is a topic for discussion: what is matters more to us.
-        $validator = Validator::make($record, [
-            'email' => ['required', 'string', 'max:255', 'email:rfc'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-        ]);
+        $validator = Validator::make($record, ContactRules::base());
 
         if ($validator->fails()) {
             return implode('; ', $validator->errors()->all());
@@ -106,6 +109,9 @@ class ChunkProcessor
         return null;
     }
 
+    /**
+     * @see ImportIssue::$fillable
+     */
     private function buildIssue(int $importId, IssueType $type, array $record, string $reason): array
     {
         return [
@@ -115,26 +121,29 @@ class ChunkProcessor
             'first_name' => mb_substr($record['first_name'] ?? '', 0, 255) ?: null,
             'last_name' => mb_substr($record['last_name'] ?? '', 0, 255) ?: null,
             'reason' => mb_substr($reason, 0, 500),
-            'created_at' => now(),
+            'created_at' => $this->startedAt,
         ];
     }
 
     /**
+     * @see Contact::$fillable
+     *
      * @return int Number of actually inserted rows
      */
     private function flushInserts(array &$buffer): int
     {
-        $now = now();
-
         $rows = array_map(fn (array $r) => [
             'email' => $r['email'],
             'first_name' => $r['first_name'],
             'last_name' => $r['last_name'],
-            'created_at' => $now,
-            'updated_at' => $now,
+            'created_at' => $this->startedAt,
+            'updated_at' => $this->startedAt,
         ], $buffer);
 
-        return DB::table('contacts')->insertOrIgnore($rows);
+        $affected = DB::table('contacts')->insertOrIgnore($rows);
+        $buffer = [];
+
+        return $affected;
     }
 
     private function flushIssuesIfNeeded(array &$buffer, int $batchSize): void

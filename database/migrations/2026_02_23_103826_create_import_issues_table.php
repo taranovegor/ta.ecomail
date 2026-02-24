@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('import_issues', function (Blueprint $table) {
             $table->id();
             $table->foreignId('import_id')->constrained()->cascadeOnDelete();
-            $table->string('type'); // enum?
+            $table->string('type');
             $table->string('email');
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
