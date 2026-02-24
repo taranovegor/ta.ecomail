@@ -68,7 +68,7 @@ Clone the repository, install and initialize the full environment (build, start,
 
 ```bash
 git clone git@github.com:taranovegor/ta.ecomail.git
-cd ecomail
+cd ta.ecomail
 make install
 ```
 
