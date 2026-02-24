@@ -83,6 +83,9 @@ test: ## Run tests
 install: ## Full environment setup (build, up, composer setup)
 	[ -f .env ] || cp .env.example .env
 	$(COMPOSE) build
+	@if [ -z "$$(ls -A vendor 2>/dev/null)" ]; then \
+		$(COMPOSE) up -d workspace; \
+		$(COMPOSE) exec workspace composer install --ignore-platform-reqs --no-interaction --prefer-dist; \
+	fi
 	$(COMPOSE) up -d
 	$(COMPOSE) exec workspace composer setup
-\
