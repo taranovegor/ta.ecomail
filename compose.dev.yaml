@@ -1,6 +1,6 @@
 services:
   web:
-    image: nginx:latest
+    image: nginx:1.29-alpine
     volumes:
       - ./:/var/www
       - ./docker/development/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -15,6 +15,7 @@ services:
         condition: service_started
 
   php-fpm:
+    image: ecomail-php-fpm:development
     build:
       context: .
       dockerfile: ./docker/common/php-fpm/Dockerfile
@@ -28,8 +29,6 @@ services:
         XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
         XDEBUG_LOG: /dev/stdout
         XDEBUG_LOG_LEVEL: 0
-    env_file:
-      - .env
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
@@ -46,6 +45,7 @@ services:
         condition: service_started
 
   workspace:
+    image: ecomail-workspace:latest
     build:
       context: .
       dockerfile: ./docker/development/workspace/Dockerfile
@@ -62,8 +62,6 @@ services:
       - '${VITE_PORT:-5173}:5173'
     tty: true
     stdin_open: true
-    env_file:
-      - .env
     volumes:
       - ./:/var/www
     networks:
@@ -120,122 +118,82 @@ services:
       - laravel-development
 
   queue-import-orchestrator:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: development
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
-        XDEBUG_MODE: develop,coverage,debug,profile
-        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
-        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
-        XDEBUG_LOG: /dev/stdout
-        XDEBUG_LOG_LEVEL: 0
-    env_file:
-      - .env
+    image: ecomail-php-fpm:development
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
     networks:
       - laravel-development
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      mariadb:
+        condition: service_started
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-orchestrator"]
+      rabbitmq:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+    command: [ "php", "artisan", "queue:work", "--queue=import-orchestrator", "--max-jobs=16", "--tries=3" ]
     restart: unless-stopped
 
   queue-import-chunks:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: development
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
-        XDEBUG_MODE: develop,coverage,debug,profile
-        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
-        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
-        XDEBUG_LOG: /dev/stdout
-        XDEBUG_LOG_LEVEL: 0
-    env_file:
-      - .env
+    image: ecomail-php-fpm:development
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
     networks:
       - laravel-development
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      mariadb:
+        condition: service_started
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-chunks"]
+      rabbitmq:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+    command: [ "php", "artisan", "queue:work", "--queue=import-chunks", "--max-jobs=16", "--tries=3" ]
     restart: unless-stopped
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 3
 
   queue-import-finalize:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: development
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
-        XDEBUG_MODE: develop,coverage,debug,profile
-        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
-        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
-        XDEBUG_LOG: /dev/stdout
-        XDEBUG_LOG_LEVEL: 0
-    env_file:
-      - .env
+    image: ecomail-php-fpm:development
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
     networks:
       - laravel-development
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      mariadb:
+        condition: service_started
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-finalize"]
+      rabbitmq:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+    command: [ "php", "artisan", "queue:work", "--queue=import-finalize", "--max-jobs=16", "--tries=3" ]
     restart: unless-stopped
 
   queue-scout:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: development
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
-        XDEBUG_MODE: develop,coverage,debug,profile
-        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
-        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
-        XDEBUG_LOG: /dev/stdout
-        XDEBUG_LOG_LEVEL: 0
-    env_file:
-      - .env
+    image: ecomail-php-fpm:development
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
     networks:
       - laravel-development
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      mariadb:
+        condition: service_started
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=scout"]
+      rabbitmq:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+    command: [ "php", "artisan", "queue:work", "--queue=scout", "--max-jobs=100", "--tries=3" ]
     restart: unless-stopped
 
 networks:

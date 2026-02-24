@@ -45,6 +45,7 @@ services:
 
   mariadb:
     image: mariadb:12
+    restart: unless-stopped
     ports:
       - "${MARIADB_PORT:-3306}:3306"
     environment:
@@ -56,14 +57,19 @@ services:
       - mariadb-data-production:/var/lib/mysql
     networks:
       - laravel-production
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   redis:
     image: redis:8.6-alpine
     restart: unless-stopped
-    networks:
-      - laravel-production
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - laravel-production
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -73,6 +79,9 @@ services:
   rabbitmq:
     image: rabbitmq:4.2-alpine
     restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
@@ -80,9 +89,6 @@ services:
       - rabbitmq-data-production:/var/lib/rabbitmq
     networks:
       - laravel-production
-    ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -93,6 +99,8 @@ services:
   meilisearch:
     image: getmeili/meilisearch:latest
     restart: unless-stopped
+    ports:
+      - "${MEILISEARCH_PORT:-7700}:7700"
     environment:
       - MEILI_ENV=production
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-masterkey}
@@ -100,8 +108,6 @@ services:
       - meilisearch-data-production:/meili_data
     networks:
       - laravel-production
-    ports:
-      - "${MEILISEARCH_PORT:-7700}:7700"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
       interval: 10s
@@ -122,11 +128,13 @@ services:
     networks:
       - laravel-production
     depends_on:
+      mariadb:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-orchestrator"]
+    command: ["php", "artisan", "queue:work", "--queue=import-orchestrator", "--max-jobs=16", "--tries=3"]
 
   queue-import-chunks:
     build:
@@ -142,14 +150,16 @@ services:
     networks:
       - laravel-production
     depends_on:
+      mariadb:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-chunks"]
+    command: ["php", "artisan", "queue:work", "--queue=import-chunks", "--max-jobs=16", "--tries=3"]
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 3
 
   queue-import-finalize:
     build:
@@ -165,11 +175,13 @@ services:
     networks:
       - laravel-production
     depends_on:
+      mariadb:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=import-finalize"]
+    command: ["php", "artisan", "queue:work", "--queue=import-finalize", "--max-jobs=16", "--tries=3"]
 
   queue-scout:
     build:
@@ -185,11 +197,13 @@ services:
     networks:
       - laravel-production
     depends_on:
+      mariadb:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_started
-    command: ["php", "artisan", "queue:work", "--queue=scout"]
+    command: ["php", "artisan", "queue:work", "--queue=scout", "--max-jobs=100", "--tries=3"]
 
 networks:
   laravel-production:
